@@ -1,20 +1,16 @@
 package com.mjkrempl.portalridethru.Remount;
 
 import java.util.*;
-import java.util.logging.Level;
 import org.bukkit.Location;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 public final class VehicleRemountManager {
-	private final JavaPlugin plugin;
 	private final PlayerTeleportEvent.TeleportCause teleportCause;
 	private final Map<UUID, VehicleInfo> vehicleInfoMap;
 	
-	public VehicleRemountManager(JavaPlugin plugin, PlayerTeleportEvent.TeleportCause teleportCause) {
-		this.plugin = plugin;
+	public VehicleRemountManager(PlayerTeleportEvent.TeleportCause teleportCause) {
 		this.teleportCause = teleportCause;
 		this.vehicleInfoMap = new HashMap<>();
 	}
@@ -68,7 +64,6 @@ public final class VehicleRemountManager {
 	
 	private void setSpeed(Vehicle vehicle, double speed) {
 		Vector velocity = vehicle.getVelocity();
-		plugin.getLogger().log(Level.INFO, "Speed update: " + velocity.length() + " vs. " + speed + " (" + vehicle.getTicksLived() + ")");
 		velocity.normalize();
 		velocity.multiply(speed);
 		vehicle.setVelocity(velocity);

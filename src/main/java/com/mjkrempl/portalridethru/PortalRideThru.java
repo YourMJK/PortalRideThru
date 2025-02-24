@@ -20,10 +20,10 @@ public final class PortalRideThru extends JavaPlugin {
 		// Don't set up if config wishes to disable functionality
 		if (!config.enabled) return;
 		
-		VehicleRemountManager remountManager = new VehicleRemountManager(this, PlayerTeleportEvent.TeleportCause.NETHER_PORTAL);
+		VehicleRemountManager remountManager = new VehicleRemountManager(PlayerTeleportEvent.TeleportCause.NETHER_PORTAL);
 		
 		// Register event handlers
-		VehicleEventListener vehicleEventListener = new VehicleEventListener(this, remountManager, Material.NETHER_PORTAL, config.portalCooldown);
+		VehicleEventListener vehicleEventListener = new VehicleEventListener(remountManager, Material.NETHER_PORTAL, config.portalCooldown);
 		getServer().getPluginManager().registerEvents(vehicleEventListener, this);
 	}
 }

@@ -2,7 +2,6 @@ package com.mjkrempl.portalridethru.Events;
 
 import com.mjkrempl.portalridethru.Remount.VehicleRemountManager;
 import java.util.*;
-import java.util.logging.Level;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
@@ -17,15 +16,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 public class VehicleEventListener implements Listener {
-	private final JavaPlugin plugin;
 	private final VehicleRemountManager vehicleRemountManager;
 	private final Material portalMaterial;
 	private final int portalCooldown;
 	private final Set<UUID> vehiclesInPortal;
 	private boolean hasVehiclesInPortal;
 	
-	public VehicleEventListener(JavaPlugin plugin, VehicleRemountManager vehicleRemountManager, Material portalMaterial, int portalCooldown) {
-		this.plugin = plugin;
+	public VehicleEventListener(VehicleRemountManager vehicleRemountManager, Material portalMaterial, int portalCooldown) {
 		this.vehicleRemountManager = vehicleRemountManager;
 		this.portalMaterial = portalMaterial;
 		this.portalCooldown = portalCooldown;
@@ -37,23 +34,19 @@ public class VehicleEventListener implements Listener {
 	public void onVehicleMove(VehicleMoveEvent event) {
 		Vehicle vehicle = event.getVehicle();
 		
-		// Check if vehicle is an occupied minecart
+		// Check if vehicle is a minecart
 		if (vehicle.getType() != EntityType.MINECART) return;
 		
 		// Check if vehicle appeared again after being in portal
 		if (hasVehiclesInPortal && removeVehicleInPortal(vehicle)) {
-			//plugin.getLogger().log(Level.INFO, "Vehicle reappeared " + vehicle.getUniqueId() + ": " + vehicle.getVelocity());
-			
 			// Reset portal cooldown
 			vehicle.setPortalCooldown(portalCooldown);
 			
 			// Remount previous passengers
-			if (vehicleRemountManager.remount(vehicle)) {
-				//plugin.getLogger().log(Level.INFO, "Vehicle remounted " + vehicle.getUniqueId() + ": " + vehicle.getVelocity());
-			}
+			vehicleRemountManager.remount(vehicle);
 		}
 		
-		//plugin.getLogger().log(Level.INFO, "Vehicle move " + vehicle.getUniqueId() + ": " + (vehicle.isEmpty() ? "EMPTY " : "") + vehicle.getVelocity());
+		// Check if vehicle is occupied
 		if (vehicle.isEmpty()) return;
 		
 		// Get location 0.5 blocks in front of vehicle
@@ -66,17 +59,16 @@ public class VehicleEventListener implements Listener {
 		// Check location for portal block
 		BlockData block = vehicle.getWorld().getBlockData(loc);
 		if (block.getMaterial() == portalMaterial) {
-			//plugin.getLogger().log(Level.INFO, "Vehicle Portal " + vehicle.getUniqueId() + ": " + vehicle.getVelocity());
 			vehicleRemountManager.dismount(vehicle);
 		}
 	}
 	
 	@EventHandler
-	public void onEntityPortal(EntityPortalEvent event) {
+	public void onEntityPortalUse(EntityPortalEvent event) {
 		Entity entity = event.getEntity();
 		if (entity.getType() != EntityType.MINECART) return;
-		//plugin.getLogger().log(Level.INFO, "EntityPortalEvent " + entity.getUniqueId() + ": " + entity.getLocation());
 		
+		// When empty minecart used the portal, mark it for potential remounting
 		Vehicle vehicle = (Vehicle)entity;
 		addVehicleInPortal(vehicle);
 	}
