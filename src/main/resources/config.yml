@@ -1,0 +1,8 @@
+# Enable/disable functionality of this plugin.
+enabled: true
+
+# How long before a vehicle can use a portal again after leaving one (in ticks).
+portal-cooldown: 60
+
+# Don't modify this.
+config-version: 1
