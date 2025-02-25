@@ -2,6 +2,6 @@ name: '${project.name}'
 version: '${project.version}'
 main: '${project.groupId}.PortalRideThru'
 api-version: '1.17'
-#description: ''
+description: 'A plugin enabling players and entities to ride Minecarts seamlessly through Nether Portals.'
 author: YourMJK
 website: https://github.com/YourMJK/PortalRideThru
