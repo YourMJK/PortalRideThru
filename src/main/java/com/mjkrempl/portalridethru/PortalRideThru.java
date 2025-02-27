@@ -14,6 +14,7 @@ public final class PortalRideThru extends JavaPlugin {
 	@Override
 	public void onLoad() {
 		saveDefaultConfig();
+		Configuration.migrateIfNecessary(this);
 		config = new Configuration(this);
 	}
 	
