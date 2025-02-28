@@ -7,15 +7,22 @@ import org.bukkit.entity.Vehicle;
 import org.bukkit.util.Vector;
 
 public class VehicleInfo {
-	public final List<PassengerInfo> passengersInfo;
-	public final Vector velocity;
-	
-	public VehicleInfo(List<PassengerInfo> passengersInfo, Vector velocity) {
-		this.passengersInfo = passengersInfo;
-		this.velocity = velocity;
+	public enum State {
+		DISMOUNTED,
+		ENTERED
 	}
 	
-	public VehicleInfo(Vehicle vehicle) {
+	public final List<PassengerInfo> passengersInfo;
+	public final Vector velocity;
+	public State state;
+	
+	public VehicleInfo(List<PassengerInfo> passengersInfo, Vector velocity, State state) {
+		this.passengersInfo = passengersInfo;
+		this.velocity = velocity;
+		this.state = state;
+	}
+	
+	public VehicleInfo(Vehicle vehicle, State state) {
 		// Build passengers info
 		List<Entity> passengers = vehicle.getPassengers();
 		List<PassengerInfo> passengersInfo = new ArrayList<>(passengers.size());
@@ -25,5 +32,6 @@ public class VehicleInfo {
 		
 		this.passengersInfo = passengersInfo;
 		this.velocity = vehicle.getVelocity();
+		this.state = state;
 	}
 }

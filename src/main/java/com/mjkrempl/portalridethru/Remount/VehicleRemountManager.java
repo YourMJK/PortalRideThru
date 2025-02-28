@@ -4,38 +4,95 @@ import java.util.*;
 import org.bukkit.Location;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.util.Vector;
 
 public final class VehicleRemountManager {
 	private final PlayerTeleportEvent.TeleportCause teleportCause;
+	private final int portalCooldown;
 	private final Map<UUID, VehicleInfo> vehicleInfoMap;
 	
-	public VehicleRemountManager(PlayerTeleportEvent.TeleportCause teleportCause) {
+	public VehicleRemountManager(PlayerTeleportEvent.TeleportCause teleportCause, int portalCooldown) {
 		this.teleportCause = teleportCause;
+		this.portalCooldown = portalCooldown;
 		this.vehicleInfoMap = new HashMap<>();
 	}
 	
-	public void dismount(Vehicle vehicle) {
-		if (vehicle.isEmpty()) return;
-		UUID vehicleUID = vehicle.getUniqueId();
+	
+	public void willEnterPortal(Vehicle vehicle) {
+		// Save vehicle info and dismount all passengers
+		saveVehicleInfo(vehicle, VehicleInfo.State.DISMOUNTED);
+		dismount(vehicle);
+	}
+	
+	public void didEnterPortal(Vehicle vehicle) {
+		if (!isTracked(vehicle)) return;
 		
-		// Save vehicle info
-		VehicleInfo vehicleInfo = new VehicleInfo(vehicle);
+		// Update state to reflect that vehicle has entered portal
+		VehicleInfo vehicleInfo = getVehicleInfo(vehicle);
+		vehicleInfo.state = VehicleInfo.State.ENTERED;
+	}
+	
+	public void didMove(Vehicle vehicle) {
+		if (!isTracked(vehicle)) return;
+		
+		// Check current state after new movement update
+		VehicleInfo vehicleInfo = getVehicleInfo(vehicle);
+		
+		switch (vehicleInfo.state) {
+			case DISMOUNTED:
+				// Vehicle was emptied, wait until it has entered portal
+				break;
+			
+			case ENTERED:
+				// Vehicle appeared again after being in portal, remount all passengers
+				remount(vehicle, vehicleInfo.passengersInfo);
+				
+				// Reset portal cooldown to enable future portal use again
+				vehicle.setPortalCooldown(portalCooldown);
+				
+				// Done, forget vehicle
+				removeVehicleInfo(vehicle);
+				break;
+		}
+	}
+	
+	public void wasDestroyed(Vehicle vehicle) {
+		removeVehicleInfo(vehicle);
+	}
+	
+	
+	private boolean isTracked(Vehicle vehicle) {
+		if (vehicleInfoMap.isEmpty()) return false;
+		UUID vehicleUID = vehicle.getUniqueId();
+		return vehicleInfoMap.containsKey(vehicleUID);
+	}
+	
+	private void saveVehicleInfo(Vehicle vehicle, VehicleInfo.State state) {
+		UUID vehicleUID = vehicle.getUniqueId();
+		VehicleInfo vehicleInfo = new VehicleInfo(vehicle, state);
 		vehicleInfoMap.put(vehicleUID, vehicleInfo);
+	}
+	
+	private VehicleInfo getVehicleInfo(Vehicle vehicle) {
+		UUID vehicleUID = vehicle.getUniqueId();
+		return vehicleInfoMap.get(vehicleUID);
+	}
+	
+	private void removeVehicleInfo(Vehicle vehicle) {
+		UUID vehicleUID = vehicle.getUniqueId();
+		vehicleInfoMap.remove(vehicleUID);
+	}
+	
+	
+	private void dismount(Vehicle vehicle) {
+		if (vehicle.isEmpty()) return;
 		
 		// Dismount all passengers
 		vehicle.eject();
 	}
 	
-	public boolean remount(Vehicle vehicle) {
-		UUID vehicleUID = vehicle.getUniqueId();
-		
-		// Get vehicle info
-		VehicleInfo vehicleInfo = vehicleInfoMap.remove(vehicleUID);
-		if (vehicleInfo == null) return false;
-		
+	private void remount(Vehicle vehicle, List<PassengerInfo> passengersInfo) {
 		// Remount all passengers
-		for (PassengerInfo passengerInfo : vehicleInfo.passengersInfo) {
+		for (PassengerInfo passengerInfo : passengersInfo) {
 			// Determine teleport location using new vehicle position and previous passenger orientation
 			Location newLocation = vehicle.getLocation();
 			newLocation.setPitch(passengerInfo.location.getPitch());
@@ -51,21 +108,5 @@ public final class VehicleRemountManager {
 			// Remount passenger
 			vehicle.addPassenger(passengerInfo.passenger);
 		}
-		
-		/*
-		// Update vehicle speed after exiting portal
-		double speed = vehicleInfo.velocity.length();
-		setSpeed(vehicle, speed);
-		*/
-		
-		return true;
-	}
-	
-	
-	private void setSpeed(Vehicle vehicle, double speed) {
-		Vector velocity = vehicle.getVelocity();
-		velocity.normalize();
-		velocity.multiply(speed);
-		vehicle.setVelocity(velocity);
 	}
 }
