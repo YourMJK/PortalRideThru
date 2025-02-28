@@ -1,8 +1,11 @@
 # Enable/disable functionality of this plugin.
 enabled: true
 
+# Whether an occupied minecart should continue in the other world with same speed as it entered the portal.
+keep-speed: true
+
 # How long before a minecart can use a portal again after leaving one (in ticks).
 portal-cooldown: 60
 
 # Don't modify this.
-config-version: 1
+config-version: 2

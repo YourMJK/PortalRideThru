@@ -9,7 +9,9 @@ import org.bukkit.util.Vector;
 public class VehicleInfo {
 	public enum State {
 		DISMOUNTED,
-		ENTERED
+		ENTERED,
+		REMOUNTED,
+		SPEED_UPDATE
 	}
 	
 	public final List<PassengerInfo> passengersInfo;

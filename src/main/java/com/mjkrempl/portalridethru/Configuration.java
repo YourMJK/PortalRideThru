@@ -13,6 +13,7 @@ import org.simpleyaml.configuration.file.YamlFile;
 
 public class Configuration {
 	public final boolean enabled;
+	public final boolean keepSpeed;
 	public final int portalCooldown;
 	public final int configVersion;
 	
@@ -24,6 +25,7 @@ public class Configuration {
 		FileConfiguration config = plugin.getConfig();
 		
 		this.enabled = config.getBoolean("enabled", true);
+		this.keepSpeed = config.getBoolean("keep-speed", true);
 		this.portalCooldown = getClampedInt(plugin, "portal-cooldown", 60, 20);
 		this.configVersion = config.getInt(configVersionKey);
 	}

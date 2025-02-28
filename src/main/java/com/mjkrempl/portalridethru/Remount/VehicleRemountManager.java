@@ -4,14 +4,17 @@ import java.util.*;
 import org.bukkit.Location;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.util.Vector;
 
 public final class VehicleRemountManager {
 	private final PlayerTeleportEvent.TeleportCause teleportCause;
+	private final boolean keepSpeed;
 	private final int portalCooldown;
 	private final Map<UUID, VehicleInfo> vehicleInfoMap;
 	
-	public VehicleRemountManager(PlayerTeleportEvent.TeleportCause teleportCause, int portalCooldown) {
+	public VehicleRemountManager(PlayerTeleportEvent.TeleportCause teleportCause, boolean keepSpeed, int portalCooldown) {
 		this.teleportCause = teleportCause;
+		this.keepSpeed = keepSpeed;
 		this.portalCooldown = portalCooldown;
 		this.vehicleInfoMap = new HashMap<>();
 	}
@@ -48,6 +51,26 @@ public final class VehicleRemountManager {
 				
 				// Reset portal cooldown to enable future portal use again
 				vehicle.setPortalCooldown(portalCooldown);
+				
+				if (keepSpeed) {
+					// Queue updates to restore previous speed (setting velocity once isn't sufficient, has to be set for multiple ticks in succession)
+					updateSpeed(vehicle, vehicleInfo);
+					vehicleInfo.state = VehicleInfo.State.REMOUNTED;
+				} else {
+					// Done, forget vehicle
+					removeVehicleInfo(vehicle);
+				}
+				break;
+				
+			case REMOUNTED:
+				// Vehicle was remounted, apply first speed update with passengers
+				updateSpeed(vehicle, vehicleInfo);
+				vehicleInfo.state = VehicleInfo.State.SPEED_UPDATE;
+				break;
+				
+			case SPEED_UPDATE:
+				// Apply second speed update with passengers
+				updateSpeed(vehicle, vehicleInfo);
 				
 				// Done, forget vehicle
 				removeVehicleInfo(vehicle);
@@ -108,5 +131,22 @@ public final class VehicleRemountManager {
 			// Remount passenger
 			vehicle.addPassenger(passengerInfo.passenger);
 		}
+	}
+	
+	private void updateSpeed(Vehicle vehicle, VehicleInfo vehicleInfo) {
+		// Restore previous speed if vehicle is slower
+		double previousSpeed = vehicleInfo.velocity.length();
+		double currentSpeed = vehicle.getVelocity().length();
+		if (currentSpeed > previousSpeed) return;
+		
+		setSpeed(vehicle, previousSpeed);
+	}
+	
+	private void setSpeed(Vehicle vehicle, double speed) {
+		// Apply speed to current velocity vector
+		Vector velocity = vehicle.getVelocity();
+		velocity.normalize();
+		velocity.multiply(speed);
+		vehicle.setVelocity(velocity);
 	}
 }
