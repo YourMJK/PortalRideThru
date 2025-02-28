@@ -6,7 +6,7 @@
 
 	<groupId>com.mjkrempl.portalridethru</groupId>
 	<artifactId>PortalRideThru</artifactId>
-	<version>1.0.1</version>
+	<version>1.1.0</version>
 	<packaging>jar</packaging>
 
 	<name>PortalRideThru</name>
@@ -58,6 +58,7 @@
 			<id>spigot-repo</id>
 			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
 		</repository>
+
 		<repository>
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
@@ -71,6 +72,7 @@
 			<version>1.17.1-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>com.github.Carleslc.Simple-YAML</groupId>
 			<artifactId>Simple-Yaml</artifactId>
